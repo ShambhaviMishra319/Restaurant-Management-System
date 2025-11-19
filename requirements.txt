@@ -7,3 +7,5 @@ pydantic
 passlib[bcrypt]
 alembic
 pydantic-settings
+python-jose[cryptography]
+python-multipart

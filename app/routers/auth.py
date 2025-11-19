@@ -1,38 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
-from datetime import timedelta, datetime
+from fastapi import APIRouter,Depends,HTTPException
+from app import schemas
 from app.database import get_db
-from app import models, schemas
-from app.utils.hashing import verify_password, hash_password
-from app.config import settings
+from sqlalchemy.orm import Session
+from app import models
+from app.utils import hashing
+from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["Auth"]
-)
 
-@router.post("/register",response_model=schemas.UserResponse)
-def register_user(user:schemas.UserCreate,db:Session =Depends(get_db)):
-    
+router=APIRouter(prefix='/auth',tags=['Auth'])
 
-    already_user=db.query(models.User).filter(models.User.email==user.email).first()
+@router.post('/register',response_model=schemas.UserResponse)
+def register_user(user:schemas.UserCreate,db:Session=Depends(get_db) ):
 
-    if not already_user:
-        hashed_pw=hash_password(user.password)
-        new_user=models.User(
-            name=user.name,
-            email=user.email,
-            hash_password=uhashed_pw,
-            role=user.role
-        )
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        return new_user
-    else :
-        raise HTTPException(401,"user alredy there") 
+        email=user.email
+        user_found=db.query(models.User).filter(models.User.email==email).first()
+
+        if not user_found:
+            hashed_pw=hashing.hash_password(user.password)
+            new_user=models.User(
+                name=user.name,
+                email=user.email,
+                hashed_password=hashed_pw,
+                role=user.role 
+            )
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            return new_user
+        else:
+            raise HTTPException(401,"user alredy there") 
+
+
     
 @router.post("/login")
 def login(form: OAuth2PasswordRequestForm = Depends(),

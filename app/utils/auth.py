@@ -1,4 +1,4 @@
-from fastapi.security import OAUTHPasswordBearer
+from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends,HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -6,7 +6,7 @@ from jose import jwt,JWTError
 from app.config import settings
 from app import models
 
-token=OAUTHPasswordBearer(tokenURL='auth/login')
+token=OAuth2PasswordBearer(tokenUrl='auth/login')
 
 def get_current_user(token:str =Depends(token),db:Session=Depends(get_db)):
     try:

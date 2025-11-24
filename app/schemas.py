@@ -79,6 +79,7 @@ class OrderResponse(BaseModel):
 
 class OrderItemResponse(BaseModel):
     item_id: int
+    name:str
     qty: int
     unit_price: float
 

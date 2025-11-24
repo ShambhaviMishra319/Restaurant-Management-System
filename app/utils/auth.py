@@ -13,7 +13,7 @@ def get_current_user(token:str =Depends(token),db:Session=Depends(get_db)):
         payload=jwt.decode(token,key=settings.JWT_SECRET,algorithms=[settings.JWT_ALGO])
         user_id=payload.get("user_id")
 
-        user=db.query(models.User).filter(models.User.id==user_id)
+        user=db.query(models.User).filter(models.User.id==user_id).first()
 
         if not user:
            raise HTTPException(401, "User not found")

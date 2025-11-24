@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from app import models
 from app.utils import hashing
 from fastapi.security import OAuth2PasswordRequestForm
-
+from datetime import datetime,timedelta
+from jose import jwt
+from app.config import settings
 
 router=APIRouter(prefix='/auth',tags=['Auth'])
 
@@ -40,7 +42,7 @@ def login(form: OAuth2PasswordRequestForm = Depends(),
     if not user:
         raise HTTPException(401, "Invalid Credentials")
 
-    if not verify_password(form.password, user.hashed_password):
+    if not hashing.verify_password(form.password, user.hashed_password):
         raise HTTPException(401, "Incorrect Password")
 
     token_data = {
@@ -52,3 +54,9 @@ def login(form: OAuth2PasswordRequestForm = Depends(),
     token = jwt.encode(token_data, settings.JWT_SECRET, algorithm=settings.JWT_ALGO)
 
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get('/getUsers',response_model=list[schemas.UserResponse])
+def get_all_users(db:Session=Depends(get_db)):
+     all_users=db.query(models.User).all()
+     return all_users

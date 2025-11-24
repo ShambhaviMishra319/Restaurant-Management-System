@@ -39,7 +39,6 @@ def create_order(order: schemas.OrderCreate,
         if not db_item:
             raise HTTPException(404, f"Item {item.item_id} not found")
 
-        # decrease stock
         inventory = db.query(models.Inventory).filter(
             models.Inventory.item_id == item.item_id
         ).first()
@@ -64,7 +63,25 @@ def create_order(order: schemas.OrderCreate,
     db.commit()
     db.refresh(new_order)
 
-    return new_order
+    # -------- FIX: build response manually --------
+    items_response = []
+
+    for oi in new_order.items:
+        items_response.append({
+            "item_id": oi.item_id,
+            "name": oi.item.name,
+            "qty": oi.qty,
+            "unit_price": oi.unit_price
+        })
+
+    return {
+        "id": new_order.id,
+        "status": new_order.status,
+        "total_amount": new_order.total_amount,
+        "created_at": new_order.created_at,
+        "items": items_response
+    }
+
                                                                
 
 
@@ -74,7 +91,24 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(404, "Order not found")
-    return order
+    
+    items_response=[]
+
+    for oi in order.items:
+        items_response.append({
+            "item_id": oi.item_id,
+            "name": oi.item.name,         # <-- Get name here
+            "qty": oi.qty,
+            "unit_price": oi.unit_price
+        })
+
+    return {
+        "id": order.id,
+        "status": order.status,
+        "total_amount": order.total_amount,
+        "created_at": order.created_at,
+        "items": items_response
+    }
 
 
 # ---- UPDATE ORDER STATUS ----
